@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ProductException;
 use App\Http\Requests\ProductRequest;
 use App\Http\Resources\Product\ProductCollection;
 use App\Http\Resources\Product\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
@@ -43,7 +45,15 @@ class ProductController extends Controller
      */
     public function store(ProductRequest $request)
     {
-        Product::create($request->all());
+        $product = new Product();
+        $product->name = $request->name;
+        $product->detail = $request->detail;
+        $product->price = $request->price;
+        $product->stock = $request->stock;
+        $product->discount = $request->discount;
+        $product->user_id = Auth::id();
+
+        $product->save();
 
         return response([
             'res' => true,
@@ -59,7 +69,10 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        return new ProductResource($product);
+
+        $show = new ProductResource($product);
+
+        return $show;
     }
 
     /**
@@ -82,6 +95,8 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
+        $this->ProductUserCheck($product);
+
         $product->update($request->all());
 
         return response([
@@ -98,11 +113,20 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        $this->ProductUserCheck($product);
+
         $product->delete();
 
         return response([
             'res' => true,
             'data' => 'Product Deleted'
         ],200);
+    }
+
+    public function ProductUserCheck($product){
+
+        if ((Auth::id()) != ($product->user_id)) {
+           abort(400, 'Product dont belongs to user');
+        }
     }
 }
