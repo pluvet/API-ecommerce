@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ReviewRequest;
 use App\Http\Resources\ReviewResource;
 use App\Models\Product;
 use App\Models\Review;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
 {
@@ -35,9 +37,18 @@ class ReviewController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ReviewRequest $request,Product $product)
     {
-        //
+
+        $review = new Review($request->all());
+
+        $product->reviews()->save($review);
+
+
+        return response([
+            'res' => true,
+            'data' => 'Review created'
+        ],201);
     }
 
     /**
@@ -69,9 +80,13 @@ class ReviewController extends Controller
      * @param  \App\Models\Review  $review
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Review $review)
+    public function update(Request $request,Product $product, Review $review)
     {
-        //
+        $review->update($request->all());
+        return response([
+            'res' => true,
+            'data' => 'Review updated'
+        ],200);
     }
 
     /**
@@ -80,8 +95,12 @@ class ReviewController extends Controller
      * @param  \App\Models\Review  $review
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Review $review)
+    public function destroy(Product $product,Review $review)
     {
-        //
+        $review->delete();
+        return response([
+            'res' => true,
+            'data' => 'Review deleted'
+        ],200);
     }
 }
